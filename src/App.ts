@@ -30,11 +30,12 @@ class App {
     }
 
     run(): void {
+        // @ts-ignore
         document.body.appendChild(this._app.view);
-        Loader.shared.add(Config.TEXTURES).load(this.setup.bind(this));
+        Loader.shared.add(Config.TEXTURES).load(this.setup);
     }
 
-    private setup(): void {
+    private setup = () => {
         this._app.ticker.add(() => this.loop());
     }
 

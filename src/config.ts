@@ -5,10 +5,11 @@ export const Config = {
     CELL_COLOR: 0xfbdd5d,
     CELL_BORDER_COLOR: 0xffffff,
     CELL_BORDER_SIZE: 1,
+    DEFAULT_STORAGE_OBJECT_OFFSET: 5,
     TEXTURES: [
         {
             name: 'robot',
-            url: 'media/robot.png'
+            url: '/media/robot.png'
         }
     ]
 };

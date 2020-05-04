@@ -1,16 +1,13 @@
 import { Container, Graphics } from 'pixi.js';
-import StorageObject from './StorageObject';
 import Config from '../config';
 
 class Field implements Drawable {
     container: Container;
-    contents: Array<Array<StorageObject>>;
     readonly cols: number;
     readonly rows: number;
 
     constructor(container: Container, cols: number, rows: number) {
         this.container = container;
-        this.contents = (new Array(cols)).map(() => new Array(rows));
         this.cols = cols;
         this.rows = rows;
     }

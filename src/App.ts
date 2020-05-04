@@ -1,29 +1,25 @@
 import { Application, Loader } from 'pixi.js';
 import Config from './config';
 import Field from './drawables/Field';
-import Commander from './logic/Commander';
+import StorageObject from './drawables/StorageObject';
 
 class App {
-    get app(): PIXI.Application {
-        return this._app;
-    }
-    get field(): Field {
+    get field(): Field | undefined {
         return this._field;
     }
 
-    set field(value: Field) {
+    set field(value: Field | undefined) {
         this._field = value;
     }
-    private _app: Application;
-    private _field: Field;
-    private commander: Commander;
+    readonly app: Application;
+    private _field: Field | undefined;
+    private objects: StorageObject[] = [];
 
     constructor() {
-        this._app = new Application({
+        this.app = new Application({
             width: Config.CANVAS_WIDTH,
             height: Config.CANVAS_HEIGHT
         });
-        this.commander = new Commander(this);
         // this.app.renderer.view.style.position = 'absolute';
         // this.app.renderer.view.style.display = 'block';
         // this.app.renderer.resize(window.innerWidth, window.innerHeight);
@@ -31,17 +27,20 @@ class App {
 
     run(): void {
         // @ts-ignore
-        document.body.appendChild(this._app.view);
+        document.body.appendChild(this.app.view);
         Loader.shared.add(Config.TEXTURES).load(this.setup);
     }
 
     private setup = () => {
-        this._app.ticker.add(() => this.loop());
+        this.app.ticker.add(() => this.loop());
     }
 
     private loop(): void {
     }
 
+    addObject(obj: StorageObject) {
+        this.objects.push(obj);
+    }
 }
 
 export default App;

@@ -13,12 +13,14 @@ class Commander {
         const field = new Field(this.app.app.stage, cols, rows);
         field.draw();
         this.app.field = field;
+        return field;
     }
 
     addRobot(cellX: number, cellY: number) {
         const robot = new Robot(this.app.app.stage, cellX, cellY);
         robot.draw();
         this.app.addObject(robot);
+        return robot;
     }
 }
 

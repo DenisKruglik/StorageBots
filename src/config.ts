@@ -11,7 +11,8 @@ export const Config = {
             name: 'robot',
             url: '/media/robot.png'
         }
-    ]
+    ],
+    ROBOTS_SPEED: 5,
 };
 
 export default Config;

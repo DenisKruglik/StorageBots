@@ -2,6 +2,7 @@ import { Application, Loader } from 'pixi.js';
 import Config from './config';
 import Field from './drawables/Field';
 import StorageObject from './drawables/StorageObject';
+import Robot from './drawables/Robot';
 
 class App {
     get field(): Field | undefined {
@@ -14,6 +15,9 @@ class App {
     readonly app: Application;
     private _field: Field | undefined;
     private objects: StorageObject[] = [];
+    get robots(): Robot[] {
+        return this.objects.filter(item => item instanceof Robot) as Robot[];
+    }
 
     constructor() {
         this.app = new Application({
@@ -36,6 +40,7 @@ class App {
     }
 
     private loop(): void {
+        this.robots.forEach(robot => robot.act());
     }
 
     addObject(obj: StorageObject) {

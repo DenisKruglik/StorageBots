@@ -20,6 +20,7 @@ abstract class StorageObject implements Drawable {
     container: Container;
     private _cellX: number;
     private _cellY: number;
+    protected sprite: Sprite = new Sprite(this.getTexture());
 
     constructor(container: Container, cellX: number, cellY: number) {
         this.container = container;
@@ -28,14 +29,6 @@ abstract class StorageObject implements Drawable {
     }
 
     protected abstract getTexture(): Texture;
-
-    protected getX(): number {
-        return this.cellX;
-    }
-
-    protected getY(): number {
-        return this.cellY;
-    }
 
     protected getWidth(): number {
         return Config.CELL_SIDE_LENGTH - this.getOffset() * 2;
@@ -50,13 +43,12 @@ abstract class StorageObject implements Drawable {
     }
 
     draw(): void {
-        const sprite = new Sprite(this.getTexture());
-        sprite.width = this.getWidth();
-        sprite.height = this.getHeight();
+        this.sprite.width = this.getWidth();
+        this.sprite.height = this.getHeight();
         const offset = this.getOffset();
-        sprite.x = this.getX() + offset;
-        sprite.y = this.getY() + offset;
-        this.container.addChild(sprite);
+        this.sprite.x = this.cellX * Config.CELL_SIDE_LENGTH + offset;
+        this.sprite.y = this.cellY * Config.CELL_SIDE_LENGTH + offset;
+        this.container.addChild(this.sprite);
     }
 }
 

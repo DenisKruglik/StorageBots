@@ -1,5 +1,6 @@
 import { Texture, Container, Sprite } from 'pixi.js';
 import Config from '../config';
+import App from '../App';
 
 abstract class StorageObject implements Drawable {
     get cellY(): number {
@@ -20,9 +21,11 @@ abstract class StorageObject implements Drawable {
     container: Container;
     private _cellX: number;
     private _cellY: number;
-    protected sprite: Sprite = new Sprite(this.getTexture());
+    protected app: App;
+    readonly sprite: Sprite = new Sprite(this.getTexture());
 
-    constructor(container: Container, cellX: number, cellY: number) {
+    constructor(app: App, container: Container, cellX: number, cellY: number) {
+        this.app = app;
         this.container = container;
         this._cellX = cellX;
         this._cellY = cellY;

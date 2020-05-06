@@ -1,14 +1,15 @@
 import StorageObject from './StorageObject';
-import {Container, Loader} from 'pixi.js';
+import { Loader } from 'pixi.js';
 import TransitionDirection from '../logic/TransitionDirection';
 import Config from '../config';
+import Crate from './Crate';
+import LoaderGraphic from '../graphics/Loader';
 
 export default class Robot extends StorageObject{
     private direction: TransitionDirection = TransitionDirection.STILL;
-
-    constructor(container: Container, cellX: number, cellY: number) {
-        super(container, cellX, cellY);
-    }
+    private load: Crate | null = null;
+    private loader: LoaderGraphic | null = null;
+    private onLoadingEnd: Function | null = null;
 
     protected getTexture(): PIXI.Texture {
         return Loader.shared.resources['robot'].texture;
@@ -94,5 +95,59 @@ export default class Robot extends StorageObject{
 
     act() {
         this.move();
+        this.proceedLoading();
+    }
+
+    private _take(crate: Crate) {
+        this.load = crate;
+        this.app.removeObject(crate);
+        this.container.removeChild(crate.sprite);
+        const sideLength = this.getWidth() * 2 - this.getOffset() * 2;
+        this.sprite.addChild(crate.sprite);
+        crate.sprite.y = -sideLength;
+        crate.sprite.x = 0;
+        crate.sprite.width = sideLength;
+        crate.sprite.height = sideLength;
+    }
+
+    take(crate: Crate) {
+        this.addLoadableAction(this._take.bind(this, crate));
+    }
+
+    private proceedLoading() {
+        if (this.loader) {
+            this.loader.setProgressAndRedraw(this.loader.progress + Config.LOADING_SPEED);
+            if (this.loader.progress === 1) {
+                if (this.onLoadingEnd) this.onLoadingEnd();
+                this.sprite.removeChild(this.loader);
+                this.onLoadingEnd = null;
+                this.loader = null;
+            }
+        }
+    }
+
+    private _put() {
+        if (this.load) {
+            this.app.addObject(this.load);
+            this.sprite.removeChild(this.load.sprite);
+            this.load.cellX = this.cellX;
+            this.load.cellY = this.cellY;
+            this.load.draw();
+            this.load = null;
+        }
+    }
+
+    put() {
+        if (this.load) {
+            this.addLoadableAction(this._put.bind(this));
+        }
+    }
+
+    private addLoadableAction(action: Function) {
+        this.onLoadingEnd = action;
+        this.loader = new LoaderGraphic();
+        this.loader.x = this.getWidth() - this.getOffset();
+        this.loader.y =  -Config.LOADER_RADIUS - Config.LOADER_OFFSET;
+        this.sprite.addChild(this.loader);
     }
 }

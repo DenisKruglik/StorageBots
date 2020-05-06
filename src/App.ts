@@ -46,6 +46,13 @@ class App {
     addObject(obj: StorageObject) {
         this.objects.push(obj);
     }
+
+    removeObject(obj: StorageObject) {
+        const ind = this.objects.indexOf(obj);
+        if (ind > -1) {
+            this.objects.splice(ind, 1)
+        }
+    }
 }
 
 export default App;

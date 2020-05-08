@@ -1,8 +1,11 @@
-import { Application, Loader } from 'pixi.js';
+import { Application, Loader, Point } from 'pixi.js';
 import Config from './config';
 import Field from './drawables/Field';
 import StorageObject from './drawables/StorageObject';
 import Robot from './drawables/Robot';
+import Commander from './logic/Commander';
+import Crate from './drawables/Crate';
+import Task from './logic/Task';
 
 class App {
     get field(): Field | undefined {
@@ -15,8 +18,14 @@ class App {
     readonly app: Application;
     private _field: Field | undefined;
     private objects: StorageObject[] = [];
+    private commander = new Commander(this);
+    readonly targetCells: Point[] = [];
+    readonly tasks: Task[] = [];
     get robots(): Robot[] {
         return this.objects.filter(item => item instanceof Robot) as Robot[];
+    }
+    get crates(): Crate[] {
+        return this.objects.filter(item => item instanceof Crate) as Crate[];
     }
 
     constructor() {
@@ -37,6 +46,12 @@ class App {
 
     private setup = () => {
         this.app.ticker.add(() => this.loop());
+        const { fieldWidth, fieldHeight, targetCells, crates, robots } = Config.INIT_DATA;
+        this.commander.initField(fieldWidth, fieldHeight);
+        targetCells.forEach(item => this.commander.addTargetCell(item.x, item.y));
+        crates.forEach(item => this.commander.addCrate(item.x, item.y));
+        this.commander.generateAndAddTasks();
+        robots.forEach(item => this.commander.addRobot(item.x, item.y));
     }
 
     private loop(): void {

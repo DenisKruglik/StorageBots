@@ -5,7 +5,8 @@
     "scripts": {
         "build": "webpack -w",
         "build:prod": "cross-env NODE_ENV=production webpack",
-        "test": "karma start"
+        "test": "karma start",
+        "serve":  "python -m http.server"
     },
     "keywords": [
         "webpack",

@@ -1,6 +1,8 @@
 import { Point } from 'pixi.js';
+import TaskStatus from './TaskStatus';
 
 export default interface Task {
-    from: Point;
-    to: Point;
+    start: Point;
+    target: Point;
+    status: TaskStatus;
 }

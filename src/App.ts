@@ -6,6 +6,7 @@ import Robot from './drawables/Robot';
 import Commander from './logic/Commander';
 import Crate from './drawables/Crate';
 import Task from './logic/Task';
+import Pathfinder from './logic/Pathfinder';
 
 class App {
     get field(): Field | undefined {
@@ -19,6 +20,7 @@ class App {
     private _field: Field | undefined;
     private objects: StorageObject[] = [];
     private commander = new Commander(this);
+    private pathfinder = new Pathfinder(this);
     readonly targetCells: Point[] = [];
     readonly tasks: Task[] = [];
     get robots(): Robot[] {
@@ -55,7 +57,15 @@ class App {
     }
 
     private loop(): void {
-        this.robots.forEach(robot => robot.act());
+        this.robots.forEach(robot => {
+            if (!robot.task && this.tasks.length) {
+                robot.task = this.tasks.shift() as Task;
+            }
+            if (robot.task && !robot.isBusy) {
+                this.pathfinder.guide(robot);
+            }
+            robot.act()
+        });
     }
 
     addObject(obj: StorageObject) {

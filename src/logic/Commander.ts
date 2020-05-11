@@ -4,6 +4,7 @@ import Robot from '../drawables/Robot';
 import Crate from '../drawables/Crate';
 import { Point } from 'pixi.js';
 import Flag from '../drawables/Flag';
+import TaskStatus from './TaskStatus';
 
 class Commander {
     private app: App;
@@ -39,8 +40,8 @@ class Commander {
         flag.draw();
     }
 
-    addTask(from: Point, to: Point) {
-        this.app.tasks.push({ from ,to });
+    addTask(start: Point, target: Point) {
+        this.app.tasks.push({ start, target, status: TaskStatus.GOING_FOR_LOAD });
     }
 
     generateAndAddTasks() {

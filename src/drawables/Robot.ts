@@ -4,12 +4,35 @@ import TransitionDirection from '../logic/TransitionDirection';
 import Config from '../config';
 import Crate from './Crate';
 import LoaderGraphic from '../graphics/Loader';
+import Task from '../logic/Task';
 
 export default class Robot extends StorageObject{
+    get load(): Crate | null {
+        return this._load;
+    }
+
+    get isBusy(): boolean {
+        return this._isBusy;
+    }
+
+    set isBusy(value: boolean) {
+        this._isBusy = value;
+    }
+
+    get task(): Task | null {
+        return this._task;
+    }
+
+    set task(value: Task | null) {
+        this._task = value;
+    }
+
     private direction: TransitionDirection = TransitionDirection.STILL;
-    private load: Crate | null = null;
+    private _load: Crate | null = null;
     private loader: LoaderGraphic | null = null;
     private onLoadingEnd: Function | null = null;
+    private _task: Task | null = null;
+    private _isBusy: boolean = false;
 
     protected getTexture(): PIXI.Texture {
         return Loader.shared.resources['robot'].texture;
@@ -20,15 +43,19 @@ export default class Robot extends StorageObject{
         switch (direction) {
             case TransitionDirection.UP:
                 this.cellY--;
+                this.isBusy = true;
                 break;
             case TransitionDirection.DOWN:
                 this.cellY++;
+                this.isBusy = true;
                 break;
             case TransitionDirection.LEFT:
                 this.cellX--;
+                this.isBusy = true;
                 break;
             case TransitionDirection.RIGHT:
                 this.cellX++;
+                this.isBusy = true;
                 break;
         }
     }
@@ -59,6 +86,7 @@ export default class Robot extends StorageObject{
                 if (resultY <= targetY) {
                     this.sprite.y = targetY;
                     this.direction = TransitionDirection.STILL;
+                    this.isBusy = false;
                 } else {
                     this.sprite.y = resultY;
                 }
@@ -68,6 +96,7 @@ export default class Robot extends StorageObject{
                 if (resultY >= targetY) {
                     this.sprite.y = targetY;
                     this.direction = TransitionDirection.STILL;
+                    this.isBusy = false;
                 } else {
                     this.sprite.y = resultY;
                 }
@@ -77,6 +106,7 @@ export default class Robot extends StorageObject{
                 if (resultX <= targetX) {
                     this.sprite.x = targetX;
                     this.direction = TransitionDirection.STILL;
+                    this.isBusy = false;
                 } else {
                     this.sprite.x = resultX;
                 }
@@ -86,6 +116,7 @@ export default class Robot extends StorageObject{
                 if (resultX >= targetX) {
                     this.sprite.x = targetX;
                     this.direction = TransitionDirection.STILL;
+                    this.isBusy = false;
                 } else {
                     this.sprite.x = resultX;
                 }
@@ -99,7 +130,7 @@ export default class Robot extends StorageObject{
     }
 
     private _take(crate: Crate) {
-        this.load = crate;
+        this._load = crate;
         this.app.removeObject(crate);
         this.container.removeChild(crate.sprite);
         const sideLength = this.getWidth() * 2 - this.getOffset() * 2;
@@ -122,23 +153,24 @@ export default class Robot extends StorageObject{
                 this.sprite.removeChild(this.loader);
                 this.onLoadingEnd = null;
                 this.loader = null;
+                this.isBusy = false;
             }
         }
     }
 
     private _put() {
-        if (this.load) {
-            this.app.addObject(this.load);
-            this.sprite.removeChild(this.load.sprite);
-            this.load.cellX = this.cellX;
-            this.load.cellY = this.cellY;
-            this.load.draw();
-            this.load = null;
+        if (this._load) {
+            this.app.addObject(this._load);
+            this.sprite.removeChild(this._load.sprite);
+            this._load.cellX = this.cellX;
+            this._load.cellY = this.cellY;
+            this._load.draw();
+            this._load = null;
         }
     }
 
     put() {
-        if (this.load) {
+        if (this._load) {
             this.addLoadableAction(this._put.bind(this));
         }
     }
@@ -149,5 +181,6 @@ export default class Robot extends StorageObject{
         this.loader.x = this.getWidth() - this.getOffset();
         this.loader.y =  -Config.LOADER_RADIUS - Config.LOADER_OFFSET;
         this.sprite.addChild(this.loader);
+        this.isBusy = true;
     }
 }

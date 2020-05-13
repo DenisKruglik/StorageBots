@@ -1,8 +1,10 @@
-import { Point } from 'pixi.js';
+import {Point} from 'pixi.js';
 import Robot from '../drawables/Robot';
 import App from '../App';
 import TaskStatus from './TaskStatus';
 import Task from './Task';
+import Config from '../config';
+import TransitionDirection from './TransitionDirection';
 
 class PathNode {
     point: Point;
@@ -23,6 +25,28 @@ class PathNode {
 
 export default class Pathfinder {
     private app: App;
+
+    private readonly valueToDirectionMapping = {
+        'up': TransitionDirection.UP,
+        'down': TransitionDirection.DOWN,
+        'left': TransitionDirection.LEFT,
+        'right': TransitionDirection.RIGHT,
+    };
+
+    private readonly adjacentPositions = [
+        new Point(0, -1),
+        new Point(0, 1),
+        new Point(-1, 0),
+        new Point(1, 0),
+    ];
+
+    private readonly directionToForbiddenAdjacentPositionMapping = {
+        [TransitionDirection.UP]: new Point(0, -1),
+        [TransitionDirection.DOWN]: new Point(0, 1),
+        [TransitionDirection.LEFT]: new Point(1, 0),
+        [TransitionDirection.RIGHT]: new Point(-1, 0),
+        [TransitionDirection.STILL]: null,
+    };
 
     constructor(app: App) {
         this.app = app;
@@ -70,14 +94,16 @@ export default class Pathfinder {
                 return path;
             }
             const children: PathNode[] = [];
-            const adjacentPositions = [
-                new Point(0, -1),
-                new Point(0, 1),
-                new Point(-1, 0),
-                new Point(1, 0),
-            ];
+            const currentPointDirection = this.getPointDirection(currentNode.point)
+            const adjacentPositions = this.getAvailableAdjacentPositions(currentPointDirection);
             adjacentPositions.forEach(item => {
                 const point = new Point(currentNode.point.x + item.x, currentNode.point.y + item.y);
+                const pointDirection = this.getPointDirection(point);
+                const pointForbiddenPosition = this.directionToForbiddenAdjacentPositionMapping[pointDirection];
+                const transitionVector = new Point(point.x - currentNode.point.x, point.y - currentNode.point.y);
+                if (pointForbiddenPosition && transitionVector.equals(pointForbiddenPosition)) {
+                    return;
+                }
                 // @ts-ignore
                 if (point.x > (this.app.field?.cols - 1)
                     || point.x < 0
@@ -107,5 +133,16 @@ export default class Pathfinder {
                 open.push(child);
             });
         }
+        return null;
+    }
+
+    private getPointDirection(point: Point): TransitionDirection {
+        // @ts-ignore
+        return this.valueToDirectionMapping[Config.MAP[point.y][point.x]] || TransitionDirection.STILL;
+    }
+
+    private getAvailableAdjacentPositions(direction: TransitionDirection) {
+        const forbiddenPosition = this.directionToForbiddenAdjacentPositionMapping[direction];
+        return forbiddenPosition !== null ? this.adjacentPositions.filter(item => !item.equals(forbiddenPosition)) : this.adjacentPositions;
     }
 }

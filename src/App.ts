@@ -32,12 +32,11 @@ class App {
 
     constructor() {
         this.app = new Application({
-            width: Config.CANVAS_WIDTH,
-            height: Config.CANVAS_HEIGHT
+            width: window.innerWidth,
+            height: window.innerHeight
         });
-        // this.app.renderer.view.style.position = 'absolute';
-        // this.app.renderer.view.style.display = 'block';
-        // this.app.renderer.resize(window.innerWidth, window.innerHeight);
+        this.app.renderer.view.style.position = 'absolute';
+        this.app.renderer.view.style.display = 'block';
     }
 
     run(): void {
@@ -48,8 +47,12 @@ class App {
 
     private setup = () => {
         this.app.ticker.add(() => this.loop());
-        const { fieldWidth, fieldHeight, targetCells, crates, robots } = Config.INIT_DATA;
+        const { fieldWidth, fieldHeight, targetCells, robots } = Config.INIT_DATA;
         this.commander.initField(fieldWidth, fieldHeight);
+        const mapPoints = Config.MAP.map(
+            (row, y) => row.map((value, x) => ({ x, y, value }))
+        ).reduce((prev, curr) => [...prev, ...curr]);
+        const crates = mapPoints.filter(item => item.value === 'crate');
         targetCells.forEach(item => this.commander.addTargetCell(item.x, item.y));
         crates.forEach(item => this.commander.addCrate(item.x, item.y));
         this.commander.generateAndAddTasks();

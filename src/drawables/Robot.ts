@@ -5,8 +5,19 @@ import Config from '../config';
 import Crate from './Crate';
 import LoaderGraphic from '../graphics/Loader';
 import Task from '../logic/Task';
+import Path from '../logic/Path';
 
 export default class Robot extends StorageObject{
+    get direction(): TransitionDirection {
+        return this._direction;
+    }
+    get path(): Path | null {
+        return this._path;
+    }
+
+    set path(value: Path | null) {
+        this._path = value;
+    }
     get load(): Crate | null {
         return this._load;
     }
@@ -27,19 +38,24 @@ export default class Robot extends StorageObject{
         this._task = value;
     }
 
-    private direction: TransitionDirection = TransitionDirection.STILL;
+    private _direction: TransitionDirection = TransitionDirection.STILL;
     private _load: Crate | null = null;
     private loader: LoaderGraphic | null = null;
     private onLoadingEnd: Function | null = null;
     private _task: Task | null = null;
-    private _isBusy: boolean = false;
+    private _isBusy = false;
+    private _path: Path | null = null;
 
     protected getTexture(): PIXI.Texture {
         return Loader.shared.resources['robot'].texture;
     }
 
-    go(direction: TransitionDirection) {
-        this.direction = direction;
+    protected getZIndex(): number {
+        return 3;
+    }
+
+    go(direction: TransitionDirection): void {
+        this._direction = direction;
         switch (direction) {
             case TransitionDirection.UP:
                 this.cellY--;
@@ -60,32 +76,32 @@ export default class Robot extends StorageObject{
         }
     }
 
-    goUp() {
+    goUp(): void {
         this.go(TransitionDirection.UP);
     }
 
-    goDown() {
+    goDown(): void {
         this.go(TransitionDirection.DOWN);
     }
 
-    goLeft() {
+    goLeft(): void {
         this.go(TransitionDirection.LEFT);
     }
 
-    goRight() {
+    goRight(): void {
         this.go(TransitionDirection.RIGHT);
     }
 
-    private move() {
+    private move(): void {
         let resultX, resultY;
         const targetY = this.cellY * Config.CELL_SIDE_LENGTH + this.getOffset();
         const targetX = this.cellX * Config.CELL_SIDE_LENGTH + this.getOffset();
-        switch (this.direction) {
+        switch (this._direction) {
             case TransitionDirection.UP:
                 resultY = this.sprite.y - Config.ROBOTS_SPEED;
                 if (resultY <= targetY) {
                     this.sprite.y = targetY;
-                    this.direction = TransitionDirection.STILL;
+                    this._direction = TransitionDirection.STILL;
                     this.isBusy = false;
                 } else {
                     this.sprite.y = resultY;
@@ -95,7 +111,7 @@ export default class Robot extends StorageObject{
                 resultY = this.sprite.y + Config.ROBOTS_SPEED;
                 if (resultY >= targetY) {
                     this.sprite.y = targetY;
-                    this.direction = TransitionDirection.STILL;
+                    this._direction = TransitionDirection.STILL;
                     this.isBusy = false;
                 } else {
                     this.sprite.y = resultY;
@@ -105,7 +121,7 @@ export default class Robot extends StorageObject{
                 resultX = this.sprite.x - Config.ROBOTS_SPEED;
                 if (resultX <= targetX) {
                     this.sprite.x = targetX;
-                    this.direction = TransitionDirection.STILL;
+                    this._direction = TransitionDirection.STILL;
                     this.isBusy = false;
                 } else {
                     this.sprite.x = resultX;
@@ -115,7 +131,7 @@ export default class Robot extends StorageObject{
                 resultX = this.sprite.x + Config.ROBOTS_SPEED;
                 if (resultX >= targetX) {
                     this.sprite.x = targetX;
-                    this.direction = TransitionDirection.STILL;
+                    this._direction = TransitionDirection.STILL;
                     this.isBusy = false;
                 } else {
                     this.sprite.x = resultX;
@@ -124,16 +140,16 @@ export default class Robot extends StorageObject{
         }
     }
 
-    act() {
+    act(): void {
         this.move();
         this.proceedLoading();
     }
 
-    private _take(crate: Crate) {
+    private _take(crate: Crate): void {
         this._load = crate;
         this.app.removeObject(crate);
         this.container.removeChild(crate.sprite);
-        const sideLength = this.getWidth() * 2 - this.getOffset() * 2;
+        const sideLength = this.getWidth() * 4 - this.getOffset() * 4;
         this.sprite.addChild(crate.sprite);
         crate.sprite.y = -sideLength;
         crate.sprite.x = 0;
@@ -141,11 +157,15 @@ export default class Robot extends StorageObject{
         crate.sprite.height = sideLength;
     }
 
-    take(crate: Crate) {
-        this.addLoadableAction(this._take.bind(this, crate));
+    take(crate: Crate, callback: Function | null = null): void {
+        const action = (): void => {
+            this._take(crate);
+            if (callback) callback();
+        };
+        this.addLoadableAction(action);
     }
 
-    private proceedLoading() {
+    private proceedLoading(): void {
         if (this.loader) {
             this.loader.setProgressAndRedraw(this.loader.progress + Config.LOADING_SPEED);
             if (this.loader.progress === 1) {
@@ -158,7 +178,7 @@ export default class Robot extends StorageObject{
         }
     }
 
-    private _put() {
+    private _put(): void {
         if (this._load) {
             this.app.addObject(this._load);
             this.sprite.removeChild(this._load.sprite);
@@ -169,16 +189,20 @@ export default class Robot extends StorageObject{
         }
     }
 
-    put() {
+    put(callback: Function | null = null): void {
+        const action = (): void => {
+            this._put();
+            if (callback) callback();
+        };
         if (this._load) {
-            this.addLoadableAction(this._put.bind(this));
+            this.addLoadableAction(action);
         }
     }
 
-    private addLoadableAction(action: Function) {
+    addLoadableAction(action: Function): void {
         this.onLoadingEnd = action;
         this.loader = new LoaderGraphic();
-        this.loader.x = this.getWidth() - this.getOffset();
+        this.loader.x = this.getWidth() * 2 - this.getOffset() * 2;
         this.loader.y =  -Config.LOADER_RADIUS - Config.LOADER_OFFSET;
         this.sprite.addChild(this.loader);
         this.isBusy = true;

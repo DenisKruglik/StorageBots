@@ -23,7 +23,7 @@ export const Config = {
     ROBOTS_SPEED: 5,
     LOADING_SPEED: 0.02,
     LOADER_RADIUS: 30,
-    LOADER_OFFSET: 10,
+    LOADER_OFFSET: 20,
     INIT_DATA: {
         fieldWidth: 20,
         fieldHeight: 20,

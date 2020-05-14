@@ -33,16 +33,20 @@ abstract class StorageObject implements Drawable {
 
     protected abstract getTexture(): Texture;
 
-    protected getWidth(): number {
+    getWidth(): number {
         return Config.CELL_SIDE_LENGTH - this.getOffset() * 2;
     }
 
-    protected getHeight(): number {
+    getHeight(): number {
         return Config.CELL_SIDE_LENGTH - this.getOffset() * 2;
     }
 
-    protected getOffset(): number {
+    getOffset(): number {
         return Config.DEFAULT_STORAGE_OBJECT_OFFSET;
+    }
+
+    protected getZIndex(): number {
+        return 2;
     }
 
     draw(): void {
@@ -51,6 +55,7 @@ abstract class StorageObject implements Drawable {
         const offset = this.getOffset();
         this.sprite.x = this.cellX * Config.CELL_SIDE_LENGTH + offset;
         this.sprite.y = this.cellY * Config.CELL_SIDE_LENGTH + offset;
+        this.sprite.zIndex = this.getZIndex();
         this.container.addChild(this.sprite);
     }
 }

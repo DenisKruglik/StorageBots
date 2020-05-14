@@ -5,6 +5,7 @@ import Crate from '../drawables/Crate';
 import { Point } from 'pixi.js';
 import Flag from '../drawables/Flag';
 import TaskStatus from './TaskStatus';
+import { shuffle } from '../utils/array';
 
 class Commander {
     private app: App;
@@ -13,39 +14,39 @@ class Commander {
         this.app = app;
     }
 
-    initField(cols: number, rows: number) {
+    initField(cols: number, rows: number): Field {
         const field = new Field(this.app.app.stage, cols, rows);
         field.draw();
         this.app.field = field;
         return field;
     }
 
-    addRobot(cellX: number, cellY: number) {
+    addRobot(cellX: number, cellY: number): Robot {
         const robot = new Robot(this.app, this.app.app.stage, cellX, cellY);
         robot.draw();
         this.app.addObject(robot);
         return robot;
     }
 
-    addCrate(cellX: number, cellY: number) {
+    addCrate(cellX: number, cellY: number): Crate {
         const crate = new Crate(this.app, this.app.app.stage, cellX, cellY);
         crate.draw();
         this.app.addObject(crate);
         return crate;
     }
 
-    addTargetCell(x: number, y: number) {
+    addTargetCell(x: number, y: number): void {
         this.app.targetCells.push(new Point(x, y));
         const flag = new Flag(this.app, this.app.app.stage, x, y);
         flag.draw();
     }
 
-    addTask(start: Point, target: Point) {
+    addTask(start: Point, target: Point): void {
         this.app.tasks.push({ start, target, status: TaskStatus.GOING_FOR_LOAD });
     }
 
-    generateAndAddTasks() {
-        this.app.crates.forEach(item => {
+    generateAndAddTasks(): void {
+        shuffle(this.app.crates).forEach(item => {
             const from = new Point(item.cellX, item.cellY);
             const to = this.app.targetCells[Math.floor(Math.random() * this.app.targetCells.length)];
             this.addTask(from, to);

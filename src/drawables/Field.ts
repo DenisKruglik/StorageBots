@@ -22,6 +22,7 @@ class Field implements Drawable {
                 rectangle.endFill();
                 rectangle.x = j * Config.CELL_SIDE_LENGTH;
                 rectangle.y = i * Config.CELL_SIDE_LENGTH;
+                rectangle.zIndex = 1;
                 this.container.addChild(rectangle);
             }
         }

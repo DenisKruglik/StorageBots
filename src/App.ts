@@ -19,10 +19,11 @@ class App {
     readonly app: Application;
     private _field: Field | undefined;
     private objects: StorageObject[] = [];
-    private commander = new Commander(this);
+    readonly commander = new Commander(this);
     private pathfinder = new Pathfinder(this);
     readonly targetCells: Point[] = [];
     readonly tasks: Task[] = [];
+    readonly mapPoints: { x: number; y: number; value: string }[];
     get robots(): Robot[] {
         return this.objects.filter(item => item instanceof Robot) as Robot[];
     }
@@ -37,22 +38,23 @@ class App {
         });
         this.app.renderer.view.style.position = 'absolute';
         this.app.renderer.view.style.display = 'block';
+        this.mapPoints = Config.MAP.map(
+            (row, y) => row.map((value, x) => ({ x, y, value }))
+        ).reduce((prev, curr) => [...prev, ...curr]);
     }
 
     run(): void {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         document.body.appendChild(this.app.view);
         Loader.shared.add(Config.TEXTURES).load(this.setup);
     }
 
-    private setup = () => {
+    private setup = (): void => {
         this.app.ticker.add(() => this.loop());
         const { fieldWidth, fieldHeight, targetCells, robots } = Config.INIT_DATA;
         this.commander.initField(fieldWidth, fieldHeight);
-        const mapPoints = Config.MAP.map(
-            (row, y) => row.map((value, x) => ({ x, y, value }))
-        ).reduce((prev, curr) => [...prev, ...curr]);
-        const crates = mapPoints.filter(item => item.value === 'crate');
+        const crates = this.mapPoints.filter(item => item.value === 'crate');
         targetCells.forEach(item => this.commander.addTargetCell(item.x, item.y));
         crates.forEach(item => this.commander.addCrate(item.x, item.y));
         this.commander.generateAndAddTasks();
@@ -71,11 +73,11 @@ class App {
         });
     }
 
-    addObject(obj: StorageObject) {
+    addObject(obj: StorageObject): void {
         this.objects.push(obj);
     }
 
-    removeObject(obj: StorageObject) {
+    removeObject(obj: StorageObject): void {
         const ind = this.objects.indexOf(obj);
         if (ind > -1) {
             this.objects.splice(ind, 1)

@@ -3,7 +3,8 @@ enum TaskStatus {
     TAKING_LOAD,
     CARRYING_LOAD_TO_TARGET,
     WAITING,
-    CARRYING_LOAD_TO_START
+    CARRYING_LOAD_TO_START,
+    PUTTING_LOAD
 }
 
 export default TaskStatus;

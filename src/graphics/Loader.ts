@@ -12,12 +12,12 @@ export default class Loader extends Graphics {
         this.redraw();
     }
 
-    setProgressAndRedraw(progress: number) {
+    setProgressAndRedraw(progress: number): void {
         this._progress = progress < 1 ? progress : 1;
         this.redraw();
     }
 
-    private redraw() {
+    private redraw(): void {
         this.clear();
         if (this._progress) {
             this.beginFill(0x00ff00);

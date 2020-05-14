@@ -57,7 +57,9 @@ export default class Pathfinder {
         if (!robot.path) {
             let onArrive;
             let points;
-            const obstacles = this.app.crates.map(item => new Point(item.cellX, item.cellY))
+            const obstacles = this.app.mapPoints
+                .filter(item => item.value === 'crate')
+                .map(item => new Point(item.x, item.y))
                 .filter(item => !item.equals(start));
             switch (status) {
                 case TaskStatus.GOING_FOR_LOAD:

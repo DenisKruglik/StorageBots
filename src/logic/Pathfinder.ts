@@ -7,23 +7,8 @@ import TransitionDirection from './TransitionDirection';
 import Path from './Path';
 import { getOppositeDirection } from '../utils/direction'
 import { getDirectionByTransitionVector } from '../utils/point';
-
-class PathNode {
-    point: Point;
-    parent: PathNode | null = null;
-    f = 0;
-    g = 0;
-    h = 0;
-
-    constructor(parent: PathNode | null, point: Point) {
-        this.parent = parent;
-        this.point = point;
-    }
-
-    equals(obj: PathNode): boolean {
-        return this.point.equals(obj.point);
-    }
-}
+import Lock from './Lock';
+import PathNode from './PathNode';
 
 export default class Pathfinder {
     private app: App;
@@ -50,7 +35,7 @@ export default class Pathfinder {
         [TransitionDirection.STILL]: null,
     };
 
-    private lockedCells: Point[] = [];
+    private locks: Lock[] = [];
 
     constructor(app: App) {
         this.app = app;
@@ -63,7 +48,9 @@ export default class Pathfinder {
         }
         const nextPoint = robot.path?.getNextPoint();
         if (nextPoint) {
-            const forbiddenPoints = this.app.robots.map(item => {
+            const lockedPoints = this.locks.filter(item => item.addedBy !== robot.getId())
+                .map(item => item.point);``
+            const forbiddenPoints = [...this.app.robots.map(item => {
                 const currentPoint = new Point(item.cellX, item.cellY);
                 const result = [currentPoint];
                 if (item.direction !== TransitionDirection.STILL) {
@@ -72,23 +59,32 @@ export default class Pathfinder {
                     result.push(pointFrom);
                 }
                 return result;
-            }).reduce((prev, curr) => [...prev, ...curr]);
+            }).reduce((prev, curr) => [...prev, ...curr]), ...lockedPoints];
             const isCrossroads = this.isCrossroads(nextPoint);
             if (!forbiddenPoints.find(item => item.equals(nextPoint)) && !isCrossroads) {
+                this.unlockCellsByRobot(robot);
                 robot.path?.follow(robot);
             } else if (isCrossroads) {
+                if (this.hasLockFor(nextPoint, robot)) {
+                    robot.path?.follow(robot);
+                    return;
+                }
                 let currentPoint: PIXI.Point | undefined = nextPoint;
                 let isCurrentPointCrossroads: boolean = isCrossroads;
+                const pointsToLock = [];
                 while (isCurrentPointCrossroads) {
                     if (forbiddenPoints.find(item => currentPoint?.equals(item))) {
                         return;
                     }
+                    currentPoint && pointsToLock.push(currentPoint);
                     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
                     // @ts-ignore
                     currentPoint = robot.path?.getPointAfter(currentPoint);
                     isCurrentPointCrossroads = currentPoint ? this.isCrossroads(currentPoint) : false;
                 }
                 if (!currentPoint || !forbiddenPoints.find(item => currentPoint?.equals(item))) {
+                    currentPoint && pointsToLock.push(currentPoint);
+                    this.lockCells(pointsToLock, robot);
                     robot.path?.follow(robot);
                 }
             } else {
@@ -253,5 +249,22 @@ export default class Pathfinder {
 
     private isCrossroads(point: Point): boolean {
         return !!this.app.crossroads.find(item => item.equals(point));
+    }
+
+    private lockCells(cells: Point[], robot: Robot): void {
+        this.locks.push(...cells.map(item => ({
+            addedBy: robot.getId(),
+            point: item,
+        })));
+    }
+
+    private unlockCellsByRobot(robot: Robot): void {
+        this.locks
+            .filter(item => item.addedBy === robot.getId())
+            .forEach(item => this.locks.splice(this.locks.indexOf(item), 1));
+    }
+
+    private hasLockFor(point: Point, robot: Robot): boolean {
+        return !!this.locks.find(item => item.addedBy === robot.getId() && point.equals(item.point));
     }
 }

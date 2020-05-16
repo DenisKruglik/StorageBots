@@ -25,14 +25,14 @@ class Commander {
     addRobot(cellX: number, cellY: number): Robot {
         const robot = new Robot(this.app, this.app.app.stage, cellX, cellY);
         robot.draw();
-        this.app.addObject(robot);
+        this.app.robots.push(robot);
         return robot;
     }
 
     addCrate(cellX: number, cellY: number): Crate {
         const crate = new Crate(this.app, this.app.app.stage, cellX, cellY);
         crate.draw();
-        this.app.addObject(crate);
+        this.app.crates.push(crate);
         return crate;
     }
 

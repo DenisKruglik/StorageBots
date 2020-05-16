@@ -18,9 +18,6 @@ export default class Robot extends StorageObject{
     set path(value: Path | null) {
         this._path = value;
     }
-    get load(): Crate | null {
-        return this._load;
-    }
 
     get isBusy(): boolean {
         return this._isBusy;
@@ -74,22 +71,6 @@ export default class Robot extends StorageObject{
                 this.isBusy = true;
                 break;
         }
-    }
-
-    goUp(): void {
-        this.go(TransitionDirection.UP);
-    }
-
-    goDown(): void {
-        this.go(TransitionDirection.DOWN);
-    }
-
-    goLeft(): void {
-        this.go(TransitionDirection.LEFT);
-    }
-
-    goRight(): void {
-        this.go(TransitionDirection.RIGHT);
     }
 
     private move(): void {
@@ -147,12 +128,12 @@ export default class Robot extends StorageObject{
 
     private _take(crate: Crate): void {
         this._load = crate;
-        this.app.removeObject(crate);
         this.container.removeChild(crate.sprite);
         const sideLength = this.getWidth() * 4 - this.getOffset() * 4;
         this.sprite.addChild(crate.sprite);
         crate.sprite.y = -sideLength;
         crate.sprite.x = 0;
+        crate.sprite.zIndex = this.getZIndex();
         crate.sprite.width = sideLength;
         crate.sprite.height = sideLength;
     }
@@ -180,7 +161,6 @@ export default class Robot extends StorageObject{
 
     private _put(): void {
         if (this._load) {
-            this.app.addObject(this._load);
             this.sprite.removeChild(this._load.sprite);
             this._load.cellX = this.cellX;
             this._load.cellY = this.cellY;
@@ -204,7 +184,12 @@ export default class Robot extends StorageObject{
         this.loader = new LoaderGraphic();
         this.loader.x = this.getWidth() * 2 - this.getOffset() * 2;
         this.loader.y =  -Config.LOADER_RADIUS - Config.LOADER_OFFSET;
+        this.loader.zIndex = this.getZIndex();
         this.sprite.addChild(this.loader);
         this.isBusy = true;
+    }
+
+    getId(): number {
+        return this.app.robots.indexOf(this);
     }
 }

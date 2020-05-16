@@ -1,7 +1,6 @@
 import { Application, Loader, Point } from 'pixi.js';
 import Config from './config';
 import Field from './drawables/Field';
-import StorageObject from './drawables/StorageObject';
 import Robot from './drawables/Robot';
 import Commander from './logic/Commander';
 import Crate from './drawables/Crate';
@@ -18,19 +17,14 @@ class App {
     }
     readonly app: Application;
     private _field: Field | undefined;
-    private objects: StorageObject[] = [];
     readonly commander = new Commander(this);
     private pathfinder = new Pathfinder(this);
     readonly targetCells: Point[] = [];
     readonly tasks: Task[] = [];
     readonly mapPoints: { x: number; y: number; value: string }[];
     readonly crossroads: Point[];
-    get robots(): Robot[] {
-        return this.objects.filter(item => item instanceof Robot) as Robot[];
-    }
-    get crates(): Crate[] {
-        return this.objects.filter(item => item instanceof Crate) as Crate[];
-    }
+    readonly robots: Robot[] = [];
+    readonly crates: Crate[] = [];
 
     constructor() {
         this.app = new Application({
@@ -73,17 +67,6 @@ class App {
             }
             robot.act()
         });
-    }
-
-    addObject(obj: StorageObject): void {
-        this.objects.push(obj);
-    }
-
-    removeObject(obj: StorageObject): void {
-        const ind = this.objects.indexOf(obj);
-        if (ind > -1) {
-            this.objects.splice(ind, 1)
-        }
     }
 }
 

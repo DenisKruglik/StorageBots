@@ -31,6 +31,7 @@ class App {
             width: window.innerWidth,
             height: window.innerHeight
         });
+        this.app.stage.sortableChildren = true;
         this.app.renderer.view.style.position = 'absolute';
         this.app.renderer.view.style.display = 'block';
         this.mapPoints = Config.MAP.map(

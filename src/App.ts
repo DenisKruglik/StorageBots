@@ -24,6 +24,7 @@ class App {
     readonly targetCells: Point[] = [];
     readonly tasks: Task[] = [];
     readonly mapPoints: { x: number; y: number; value: string }[];
+    readonly crossroads: Point[];
     get robots(): Robot[] {
         return this.objects.filter(item => item instanceof Robot) as Robot[];
     }
@@ -41,6 +42,7 @@ class App {
         this.mapPoints = Config.MAP.map(
             (row, y) => row.map((value, x) => ({ x, y, value }))
         ).reduce((prev, curr) => [...prev, ...curr]);
+        this.crossroads = Config.CROSSROADS.map(item => new Point(item.x, item.y));
     }
 
     run(): void {

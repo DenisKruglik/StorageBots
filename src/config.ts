@@ -61,6 +61,28 @@ export const Config = {
         ],
     },
     MAP: [["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate","crate","down","up","crate"],["crate","left","left","left","left","left","left","left","left","left","left","left","left","left","left","left","left","left","left","crate"],["crate","right","right","right","right","right","right","right","right","right","right","right","right","right","right","right","right","right","right","crate"]],
+    CROSSROADS: [
+        { x: 1, y: 19 },
+        { x: 2, y: 19 },
+        { x: 1, y: 18 },
+        { x: 2, y: 18 },
+        { x: 5, y: 19 },
+        { x: 6, y: 19 },
+        { x: 5, y: 18 },
+        { x: 6, y: 18 },
+        { x: 9, y: 19 },
+        { x: 10, y: 19 },
+        { x: 9, y: 18 },
+        { x: 10, y: 18 },
+        { x: 13, y: 19 },
+        { x: 14, y: 19 },
+        { x: 13, y: 18 },
+        { x: 14, y: 18 },
+        { x: 17, y: 19 },
+        { x: 18, y: 19 },
+        { x: 17, y: 18 },
+        { x: 18, y: 18 },
+    ]
 };
 
 export default Config;

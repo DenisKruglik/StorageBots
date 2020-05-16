@@ -6,6 +6,7 @@ import { Point } from 'pixi.js';
 import Flag from '../drawables/Flag';
 import TaskStatus from './TaskStatus';
 import { shuffle } from '../utils/array';
+import Task from './Task';
 
 class Commander {
     private app: App;
@@ -42,7 +43,7 @@ class Commander {
     }
 
     addTask(start: Point, target: Point): void {
-        this.app.tasks.push({ start, target, status: TaskStatus.GOING_FOR_LOAD });
+        this.app.tasks.push(new Task(start, target, TaskStatus.GOING_FOR_LOAD));
     }
 
     generateAndAddTasks(): void {

@@ -31,4 +31,8 @@ export default class Path {
     getNextPoint(): Point | null {
         return this.points[this.currentPointIndex + 1] || null;
     }
+
+    getPointAfter(point: Point): Point {
+        return this.points[this.points.indexOf(point) + 1] || null;
+    }
 }

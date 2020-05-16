@@ -9,6 +9,8 @@ import { getOppositeDirection } from '../utils/direction'
 import { getDirectionByTransitionVector } from '../utils/point';
 import Lock from './Lock';
 import PathNode from './PathNode';
+import Fail from './Fail';
+import Config from '../config';
 
 export default class Pathfinder {
     private app: App;
@@ -37,6 +39,8 @@ export default class Pathfinder {
 
     private locks: Lock[] = [];
 
+    private fails: Fail = {};
+
     constructor(app: App) {
         this.app = app;
     }
@@ -46,6 +50,18 @@ export default class Pathfinder {
             const path = this.buildPath(robot);
             robot.path = path || robot.path;
         }
+        this.followPath(robot);
+        if (this.fails[robot.getId()] >= Config.FAIL_LIMIT) {
+            const extraObstacles = this.app.robots
+                .filter(item => item != robot)
+                .map(item => new Point(item.cellX, item.cellY));
+            const path = this.buildPath(robot, extraObstacles, true);
+            robot.path = path || robot.path;
+            this.followPath(robot);
+        }
+    }
+
+    private followPath(robot: Robot): void {
         const nextPoint = robot.path?.getNextPoint();
         if (nextPoint) {
             const lockedPoints = this.locks.filter(item => item.addedBy !== robot.getId())
@@ -63,9 +79,11 @@ export default class Pathfinder {
             const isCrossroads = this.isCrossroads(nextPoint);
             if (!forbiddenPoints.find(item => item.equals(nextPoint)) && !isCrossroads) {
                 this.unlockCellsByRobot(robot);
+                this.fails[robot.getId()] = 0;
                 robot.path?.follow(robot);
             } else if (isCrossroads) {
                 if (this.hasLockFor(nextPoint, robot)) {
+                    this.fails[robot.getId()] = 0;
                     robot.path?.follow(robot);
                     return;
                 }
@@ -74,6 +92,7 @@ export default class Pathfinder {
                 const pointsToLock = [];
                 while (isCurrentPointCrossroads) {
                     if (forbiddenPoints.find(item => currentPoint?.equals(item))) {
+                        this.fails[robot.getId()]++;
                         return;
                     }
                     currentPoint && pointsToLock.push(currentPoint);
@@ -85,7 +104,10 @@ export default class Pathfinder {
                 if (!currentPoint || !forbiddenPoints.find(item => currentPoint?.equals(item))) {
                     currentPoint && pointsToLock.push(currentPoint);
                     this.lockCells(pointsToLock, robot);
+                    this.fails[robot.getId()] = 0;
                     robot.path?.follow(robot);
+                } else {
+                    this.fails[robot.getId()]++;
                 }
             } else {
                 const transitionVector = new Point(nextPoint.x - robot.cellX, nextPoint.y - robot.cellY);
@@ -105,13 +127,15 @@ export default class Pathfinder {
                         }
                     }
                 }
+                this.fails[robot.getId()]++;
             }
         } else {
+            this.fails[robot.getId()] = 0;
             robot.path?.follow(robot);
         }
     }
 
-    private buildPath(robot: Robot, extraObstacles: Point[] = []): Path | null {
+    private buildPath(robot: Robot, extraObstacles: Point[] = [], temporary = false): Path | null {
         const { start, target, status } = robot.task as Task;
         let onArrive;
         let points;
@@ -119,44 +143,50 @@ export default class Pathfinder {
             .filter(item => item.value === 'crate')
             .map(item => new Point(item.x, item.y))
             .filter(item => !item.equals(start)), ...extraObstacles];
-        switch (status) {
-            case TaskStatus.GOING_FOR_LOAD:
-                onArrive = (): void => {
-                    if (robot.task) {
-                        robot.task.status = TaskStatus.TAKING_LOAD;
-                        const crate = this.app.crates.find(item => (item.cellX === start.x) && (item.cellY === start.y));
-                        const onTake = (): TaskStatus | null => robot.task ? (robot.task.status = TaskStatus.CARRYING_LOAD_TO_TARGET) : null;
-                        if (crate) {
-                            robot.take(crate, onTake);
+        if (temporary) {
+            const start = new Point(robot.cellX, robot.cellY);
+            const end = this.findClosestPointAvailable(start, obstacles);
+            points = end ? this.aStar(start, end, obstacles) : null;
+        } else {
+            switch (status) {
+                case TaskStatus.GOING_FOR_LOAD:
+                    onArrive = (): void => {
+                        if (robot.task) {
+                            robot.task.status = TaskStatus.TAKING_LOAD;
+                            const crate = this.app.crates.find(item => (item.cellX === start.x) && (item.cellY === start.y));
+                            const onTake = (): TaskStatus | null => robot.task ? (robot.task.status = TaskStatus.CARRYING_LOAD_TO_TARGET) : null;
+                            if (crate) {
+                                robot.take(crate, onTake);
+                            }
                         }
-                    }
-                };
-                points = this.aStar(new Point(robot.cellX, robot.cellY), start, obstacles);
-                break;
-            case TaskStatus.CARRYING_LOAD_TO_TARGET:
-                onArrive = (): void => {
-                    if (robot.task) {
-                        robot.task.status = TaskStatus.WAITING;
-                        const onWaitingFinished = (): TaskStatus | null => robot.task ? (robot.task.status = TaskStatus.CARRYING_LOAD_TO_START) : null;
-                        robot.addLoadableAction(onWaitingFinished);
-                    }
-                };
-                points = this.aStar(new Point(robot.cellX, robot.cellY), target, obstacles);
-                break;
-            case TaskStatus.CARRYING_LOAD_TO_START:
-                onArrive = (): void => {
-                    if (robot.task) {
-                        robot.task.status = TaskStatus.PUTTING_LOAD;
-                        const onPuttingFinished = (): void => {
-                            robot.task = null;
-                            const to = this.app.targetCells[Math.floor(Math.random() * this.app.targetCells.length)];
-                            this.app.commander.addTask(start, to);
-                        };
-                        robot.put(onPuttingFinished);
-                    }
-                };
-                points = this.aStar(new Point(robot.cellX, robot.cellY), start, obstacles);
-                break;
+                    };
+                    points = this.aStar(new Point(robot.cellX, robot.cellY), start, obstacles);
+                    break;
+                case TaskStatus.CARRYING_LOAD_TO_TARGET:
+                    onArrive = (): void => {
+                        if (robot.task) {
+                            robot.task.status = TaskStatus.WAITING;
+                            const onWaitingFinished = (): TaskStatus | null => robot.task ? (robot.task.status = TaskStatus.CARRYING_LOAD_TO_START) : null;
+                            robot.addLoadableAction(onWaitingFinished);
+                        }
+                    };
+                    points = this.aStar(new Point(robot.cellX, robot.cellY), target, obstacles);
+                    break;
+                case TaskStatus.CARRYING_LOAD_TO_START:
+                    onArrive = (): void => {
+                        if (robot.task) {
+                            robot.task.status = TaskStatus.PUTTING_LOAD;
+                            const onPuttingFinished = (): void => {
+                                robot.task = null;
+                                const to = this.app.targetCells[Math.floor(Math.random() * this.app.targetCells.length)];
+                                this.app.commander.addTask(start, to);
+                            };
+                            robot.put(onPuttingFinished);
+                        }
+                    };
+                    points = this.aStar(new Point(robot.cellX, robot.cellY), start, obstacles);
+                    break;
+            }
         }
         return points ? new Path(points, onArrive || ((): void => undefined)) : null;
     }
@@ -221,7 +251,7 @@ export default class Pathfinder {
                     return;
                 }
                 child.g = currentNode.g + 1;
-                child.h = (Math.pow(child.point.x - endNode.point.x, 2) + Math.pow(child.point.y - endNode.point.y, 2));
+                child.h = Pathfinder.calculateDistance(child.point, endNode.point);
                 child.f = child.g + child.h;
 
                 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -231,6 +261,42 @@ export default class Pathfinder {
                 }
                 open.push(child);
             });
+        }
+        return null;
+    }
+
+    private static calculateDistance(pointA: Point, pointB: Point): number {
+        return (Math.pow(pointA.x - pointB.x, 2) + Math.pow(pointA.y - pointB.y, 2));
+    }
+
+    private findClosestPointAvailable(currentPoint: Point, obstacles: Point[]): Point | null {
+        const direction = this.getPointDirection(currentPoint);
+        const availablePositions = this.getAvailableAdjacentPositions(direction);
+        const crossroads: Point[] = [];
+        for (const vector of availablePositions) {
+            const point = new Point(currentPoint.x + vector.x, currentPoint.y + vector.y);
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            const isOutOfField = point.x > (this.app.field?.cols - 1)
+                || point.x < 0
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                || point.y > (this.app.field?.rows - 1)
+                || point.y < 0;
+            if (!obstacles.find(item => item.equals(point)) && !isOutOfField) {
+                if (!this.isCrossroads(point)) {
+                    return point;
+                }
+                crossroads.push(point);
+            }
+        }
+        const availablePoints = crossroads
+            .map(item => this.findClosestPointAvailable(item, [...obstacles, currentPoint]))
+            .filter(item => !!item);
+        if (availablePoints.length) {
+            const distances = availablePoints.map(item => Pathfinder.calculateDistance(currentPoint, item as Point));
+            const minDistance = Math.min(...distances);
+            return availablePoints[distances.indexOf(minDistance)];
         }
         return null;
     }

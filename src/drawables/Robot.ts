@@ -179,13 +179,15 @@ export default class Robot extends StorageObject{
         }
     }
 
-    addLoadableAction(action: Function): void {
+    addLoadableAction(action: Function, showLoader = true): void {
         this.onLoadingEnd = action;
         this.loader = new LoaderGraphic();
         this.loader.x = this.getWidth() * 2 - this.getOffset() * 2;
         this.loader.y =  -Config.LOADER_RADIUS - Config.LOADER_OFFSET;
         this.loader.zIndex = this.getZIndex();
-        this.sprite.addChild(this.loader);
+        if (showLoader) {
+            this.sprite.addChild(this.loader);
+        }
         this.isBusy = true;
     }
 

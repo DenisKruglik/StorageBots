@@ -82,7 +82,8 @@ export const Config = {
         { x: 18, y: 19 },
         { x: 17, y: 18 },
         { x: 18, y: 18 },
-    ]
+    ],
+    FAIL_LIMIT: 50,
 };
 
 export default Config;

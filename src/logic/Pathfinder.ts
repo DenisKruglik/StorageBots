@@ -39,7 +39,10 @@ export default class Pathfinder {
 
     private locks: Lock[] = [];
 
-    private fails: Fail = {};
+    private fails: Fail = Array.from(Config.INIT_DATA.robots.keys()).reduce((prev: Fail, curr: number) => {
+        prev[curr] = 0;
+        return prev;
+    }, {});
 
     constructor(app: App) {
         this.app = app;

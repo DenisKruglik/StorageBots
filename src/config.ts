@@ -84,6 +84,7 @@ export const Config = {
         { x: 18, y: 18 },
     ],
     FAIL_LIMIT: 50,
+    MEASURE_INTERVAL: 3000,
 };
 
 export default Config;

@@ -181,6 +181,7 @@ export default class Pathfinder {
                             robot.task.status = TaskStatus.PUTTING_LOAD;
                             const onPuttingFinished = (): void => {
                                 robot.task = null;
+                                this.app.tasksCompleted++;
                                 const to = this.app.targetCells[Math.floor(Math.random() * this.app.targetCells.length)];
                                 this.app.commander.addTask(start, to);
                             };

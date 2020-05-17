@@ -8,6 +8,12 @@ import Task from './logic/Task';
 import Pathfinder from './logic/Pathfinder';
 
 class App {
+    get tasksCompleted(): number {
+        return this._tasksCompleted;
+    }
+    set tasksCompleted(value: number) {
+        this._tasksCompleted = value;
+    }
     get field(): Field | undefined {
         return this._field;
     }
@@ -25,6 +31,8 @@ class App {
     readonly crossroads: Point[];
     readonly robots: Robot[] = [];
     readonly crates: Crate[] = [];
+    private ticks = 0;
+    private _tasksCompleted = 0;
 
     constructor() {
         this.app = new Application({
@@ -68,6 +76,14 @@ class App {
             }
             robot.act()
         });
+        this.ticks++;
+        if (this.ticks % Config.MEASURE_INTERVAL === 0) {
+            console.log({
+                ticks: this.ticks,
+                tasks: this._tasksCompleted,
+                avgSpeed: this._tasksCompleted / this.ticks,
+            });
+        }
     }
 }
 
